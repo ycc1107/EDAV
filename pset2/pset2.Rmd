@@ -74,6 +74,13 @@ add_line_breaks <- function(string, num){
 
 (f) Create a horizontal bar chart that shows the percentage of positive responses for `Q13 - Q13_F`. Use your function from part (e) to add line breaks to the responses. Your graph should have one bar each for `Q13 - Q13_F`.
 
+```{r}
+useR2016[, 7:12] %>% 
+  gather(., key = "key", value = "value") %>% 
+   subset(., !is.na(value)) %>% 
+   mutate(value1 = add_line_breaks(value, 10)) %>% 
+   ggplot(., aes(value1)) + geom_bar(stat = "count")
+```
 
 ### 2. Rotten Tomatoes
 
