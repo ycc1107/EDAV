@@ -62,7 +62,6 @@ ggplot(d, aes(x=Q3, y=proportion, fill=Q11)) + geom_bar(stat="identity") + facet
 add_line_breaks <- function(string, num){
   l <- '\n'
   regexStr <- paste0('(.{', num, ',}?)\\K[[:space:]]+')
-  print(regexStr)
   return(gsub(regexStr, l, string, perl=TRUE))
 }
 ```
