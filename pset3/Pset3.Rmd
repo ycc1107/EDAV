@@ -1,0 +1,302 @@
+---
+title: "EDAV Fall 2019 PSet 3"
+output:
+  html_document: default
+  pdf_document: default
+  always_allow_html: yes
+---
+
+Read *Graphical Data Analysis with R*, Ch. 6, 7
+
+Grading is based both on your graphs and verbal explanations. Follow all best practices as discussed in class.
+
+Data cleaning: for many of the questions, you will have to clean up the data more than in past assignments. Labels do not have to perfect but they have to be legible. Often it is helpful to shorten or abbreviate labels: this can be done before plotting or at times within the plot functions. You may make any changes to the data as appropriate before plotting, including renaming column names and the like. Be sure though to include all adjustments in your scripts.
+
+```{r setup, include=FALSE}
+ # keep this chunk in your .Rmd file
+ knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+```
+    
+
+```{r}
+library(parcoords)
+library(dplyr)
+library(rvest)
+library(GGally)
+library(d3r)
+```
+```{r}
+library(jsonlite)
+library(parcoords)
+coalEmmission <- fromJSON("https://datadiscovery.nlm.nih.gov/resource/n97u-wtk7.json")
+```
+### 1. Coal Emissions
+
+Data: https://datadiscovery.nlm.nih.gov/Environmental-Health/TOXMAP-EPA-Clean-Air-Markets-2016-Coal-Emissions/n97u-wtk7
+
+(OK to manually download `.csv` file)
+
+
+(a) Using `parcoords::parcoords()`, create an interactive parallel coordinate plot of `SO2`, `NOx`, `CO2`, `Heat Input` and `Gross Load`. Each line in the plot should represent one coal plant. Note any patterns.
+
+```{r}
+#Make a plot
+parcoords::parcoords(coalEmmission[c("so2", "nox", "co2", "heat_input", "gross_load")],
+                     rownames = F, brushMode = "1D-axes", 
+                      reorderable = T, withD3 = TRUE, alpha = 0.5)
+```
+
+<p> The SO2 emissions of most operators are lower than 10000.  Many operatoers with relatively low SO2 emissions have high NOx emissions, but a few operators with high SO2 have relatively low NOx emissions.  Though most companies have NOx emissions lower than 10000, there are many operators display higher than 10000.  Most of operators have high NOx emissions tend to have lower CO2 emissions while for those have low NOx emissions tend to have higher CO2 emissions.  For almost every operator, the value of 'heat.input' is always 10 times of its CO2 value, and the value of 'gross.load' is $1/10$ times of its 'heat.input' value.
+
+
+
+(b) Create a second interactive parallel coordiante plot, with the lines colored by state. Include only the states with more than 15 plants. Do any new patterns emerge? Explain briefly.
+```{r}
+#Find which states with more than 15 plants
+coalEmmission["State"] = as.factor(substr(as.character(coalEmmission$Location),start = 1,stop = 2))
+plantCount = count(coalEmmission,State)
+matchedState = plantCount[(plantCount$n > 15),]
+```
+
+```{r}
+#Combine data by its state
+data2 <- coalEmmission[c("State","so2", "nox", "co2", "heat_input", "gross_load")]
+data2[is.na(data2)] <- 0
+
+#Extract data that has planet number is greater than 15
+dataset2 = data2[(data2$State == matchedState$State[1] | data2$State == matchedState$State[2]|
+                      data2$State == matchedState$State[3] | data2$State == matchedState$State[4] |
+                      data2$State == matchedState$State[5] | data2$State == matchedState$State[6] |
+                      data2$State == matchedState$State[7]),]
+```
+
+
+```{r}
+#Make a plot
+parcoords(data = dataset2, rownames = F, brushMode = "1D-axes", 
+          reorderable = T, color = list(
+              colorBy = "State", colorScale = "scaleOrdinal",colorScheme = "schemeCategory10"
+          ), withD3 = TRUE, alpha = 0.5)
+
+```
+
+<p> Though most plants in IN has relatively low SO2 emmission, many of them have very high NOx emmission.  Plants in TX has the opposite situation, they have relatively high SO2 emmission but lower NOx emmission, however, their CO2 emmission become high again.  Most of the rest plants have low SO2 and low NOx emmission and high CO2 emmision.  Especially, most plants in IL keep all the emmissions in relatively low value.
+
+
+
+(c) What do `SO2`, `NOx` and `CO2` stand for? Briefly describe why each is harmful.
+
+- SO2: Sulfur dioxide.  Sulfur dioxide irritates the skin and mucous membranes of the eyes, nose, throat, and lungs. High concentrations of SO2 can cause inflammation and irritation of the respiratory system, especially during heavy physical activity.
+
+- NOx: Nitrogen oxides.  NOx is composed of nitric oxide (NO), and a smaller percentage of more poisonous nitrogen dioxide (NO2).  It can cause breathing problems, headaches, chronically reduced lung function, eye irritation, loss of appetite and corroded teeth.
+
+- CO2: Carbon dioxide. As the amount of CO2 in the atmosphere increases, it can trigger significant changes in climate.
+
+
+
+### 2. Planets
+
+Using **rvest**, scrape the data from this table: https://nssdc.gsfc.nasa.gov/planetary/factsheet/ (hint: `html_table` is helpful). Remove `MOON` data. Then, using `GGally::ggparcoord()`, create two parallel coordinate plots of the numerical variables in the dataset, one colored by the value of `Ring System?` and one colored by planet name. In both cases, each line should represent one planet. Use `coord_flip` so the variable names are easier to read.  Describe any patterns you find.
+```{r}
+webpage <- read_html("https://nssdc.gsfc.nasa.gov/planetary/factsheet/")
+tbls <- html_nodes(webpage, "table")
+head(tbls)
+```
+```{r}
+tbls_ls <- webpage %>%
+        html_nodes("table") %>%
+        html_table(fill = TRUE)
+str(tbls_ls[[1]])
+```
+
+```{r}
+tbls_ls[[1]] <- tbls_ls[[1]][-1,]
+colnames(tbls_ls[[1]]) <- c("","Mercury", "Venus", "Earth","Moon", "Mars","Jupiter", "Saturn","Uranus","Neptune","Pluto")
+tbls_ls[[1]] <-tbls_ls[[1]][,-5] # Move "Moon" column
+#tbls_ls[[1]] <-tbls_ls[[1]][-21,]
+originTable = tbls_ls[[1]]
+
+originTable[17,6:9] = "-10" 
+originTable[20,10] = ""
+originTable
+```
+
+```{r}
+df = data.frame(t(originTable))
+df <- df[-1,]
+colnames(df) <- c("Mass", "Diameter","Density","Gravity","Escape_Velocity",
+                  "Rotation_Period","Day_Length","Sun_Distance","Perihelion",
+                  "Aphelion","Orbital_Period","Orbital_Velocity","Orbital_Inclination",
+                  "Orbital_Eccentricity","Obliquity2Orbit","Mean_Temperature",
+                  "Surface_Pressure","Moons_Number","Ring_System","Global_Magnetic_Field","Name")
+```
+```{r}
+#convertType <- function(dataFrame){
+#    for (i in 1:18){
+#        dataFrame[,i] <- as.numeric(as.character(unlist(dataFrame[,i])))
+#    }
+#}
+#convertType(df)
+
+df[,1] <- as.numeric(as.character(unlist(df[,1])))
+df[,2] <- as.numeric(as.character(unlist(df[,2])))
+df[,3] <- as.numeric(as.character(unlist(df[,3])))
+df[,4] <- as.numeric(as.character(unlist(df[,4])))
+df[,5] <- as.numeric(as.character(unlist(df[,5])))
+df[,6] <- as.numeric(as.character(unlist(df[,6])))
+df[,7] <- as.numeric(as.character(unlist(df[,7])))
+df[,8] <- as.numeric(as.character(unlist(df[,8])))
+df[,9] <- as.numeric(as.character(unlist(df[,9])))
+df[,10] <- as.numeric(as.character(unlist(df[,10])))
+df[,11] <- as.numeric(as.character(unlist(df[,11])))
+df[,12] <- as.numeric(as.character(unlist(df[,12])))
+df[,13] <- as.numeric(as.character(unlist(df[,13])))
+df[,14] <- as.numeric(as.character(unlist(df[,14])))
+df[,15] <- as.numeric(as.character(unlist(df[,15])))
+df[,16] <- as.numeric(as.character(unlist(df[,16])))
+df[,17] <- as.numeric(as.character(unlist(df[,17])))
+df[,18] <- as.numeric(as.character(unlist(df[,18])))
+
+df[c(2,3,5:8),2] = c(12104,12756,142984,120536,51118,49528)
+df[6:9,11] = c(10747,30589,59800,90560)
+
+str(df)
+```
+
+<p> The plot below, we set the missing data in surface pressure as "-10".
+```{r}
+ggparcoord(df, columns = c(1:18), groupColumn = "Ring_System") + coord_flip()
+```
+
+<p> Compared with planets have ring system, the planets have no ring system trend to have fewer moons number, shorter sun distance, smaller perihelion and aphelion, samller escape velocity, smaller gravity and mass ,but have higher mean temperature, higher orbital related values, and higher density value.  Especially, in gravity, escape velocity, they show the obvious difference that planet with ring system has positive standard deviation while without ring system have negative standard deviation.  For the planets without ring system, they gathered closely in standard deviation in orbital period, aphelion, perihelion and sun distance.  These four vairables are implied to have positive relationships since the lines for planets are relatively flat.
+
+```{r}
+ggparcoord(df, columns = c(1:18), groupColumn = "Name") + coord_flip()
+```
+
+<p> Venus is the planet that has three noticeable variables that have huge deviations from the mean value: surface pressure, obiliquity to orbit, and rotation period. Especially in rotation period, it has extremely differnt different value with others.  Pluto has extremely high values in orbital inclination, orbital period, aphelion, perihelion, and sun distance.  Jupiter is a planet that has most of the value really colse to mean, except for escape velocity, gravity, mass, and moons number. If we focus on Mercury and Pluto, except for orbital eccentricity, escape velocity and gravity, these two planets used to have totally different standard deviation's sign (That is to say, if Pluto is positive standard deviation, Mercury is negative in that feature).   
+
+### 3. Heart Disease
+
+Data: four data frames that begin with `heart_disease` in the **ucidata** package
+
+Packages: You may use **vcd** or **ggmosaic**.
+
+```{r}
+library(ggplot2)
+library(ucidata)
+library(dplyr)
+library(ggmosaic)
+q3Theme <- theme(axis.text.x = element_text(angle = 90))
+```
+(a) Create three mosaic plots, each involving two categorical variables from `heart_disease_cl` and interpret the plots. (You may reuse variables, for example X ~ Y and X ~ Z).
+
+From this plot, male has  larger number of sample compare with female. For male, most of male have no symptom (asymptomatic) and non-anginal pain second. The typical angina is the least symptom but it is still larger than female proportion wise. For female, asymptomatic and non-anginal pain have very similar proportion. 
+```{r}
+ggplot(heart_disease_cl) + geom_mosaic(aes(product(cp, sex))) + xlab('SEX') + ylab('CP')
+```
+
+From this plot, male has  larger number of sample compare with female. For each slope, male and female have similar proportion, but male has more downsloping and female has more upsloping
+```{r}
+ggplot(heart_disease_cl) + geom_mosaic(aes(product(slope, sex ))) + xlab('SEX') + ylab('SLOPE')
+```
+
+From this plot, male has  larger number of sample compare with female. Male has very tiny proportion on ST-T wave abnormality and almost equally distributed to other two restecg.  Female has similar distribution, but ST-T wave abnormality part is much larger than male’s 
+```{r}
+ggplot(heart_disease_cl) + geom_mosaic(aes(product(restecg, sex ))) + xlab('SEX') + ylab('RESTECG')
+```
+
+
+(b) Combine the four heart disease datasets and create a mosaic plot showing chest pain by sex and location. Describe any patterns.
+
+After combine all four datasets, male still has larger number of sample compare with female. Each state has different symptoms of chest pain for female, for example, hu female has high percentage of atypical angina, but cl female has more on non-anginal pain. The other observation is the locations of samples are more concentrate to cl and hu, other two states are less data points. In male side, data points are more equally gathered from four locations. The pattern we found are as following, 1. Hu has more atypical angina which same as female, 2. Cl non-anginal pain also followed the pattern in female side
+```{r}
+data1 <- heart_disease_ch %>% mutate(location.="ch")
+data2 <- heart_disease_cl %>% mutate(location.="cl")
+data3 <- heart_disease_va %>% mutate(location.="va")
+data4 <- heart_disease_hu %>% mutate(location.="hu")
+data <- do.call("rbind", list(data1, data2, data3, data4))
+
+ggplot(data) + geom_mosaic(aes(product(cp, sex ), fill=location.)) + xlab('SEX') + ylab('CP') + q3Theme
+
+```
+
+
+
+### 4. District 3 Elementary Schools
+
+Recently, there has been much debate about the lack of racial and economic diversity at Manhattan District 3 elementary schools, part of a larger and long-standing controversy about iniquities in the New York City public school system as a whole.
+
+The *New York Times* article, "Rezoning Plan to Remake 3 Upper West Side Schools Will Proceed, City Says,"  (https://www.nytimes.com/2016/11/10/nyregion/rezoning-plan-for-3-upper-west-side-schools-will-proceed-city-says.html) (2016-11-10) identifies the 11 elementary schools in Manhattan District 3.
+
+For this question, we will analyze parent survey results for these schools.
+
+Data: https://www.schools.nyc.gov/about-us/reports/school-quality/nyc-school-survey
+
+```{r}
+library(readxl)
+library(likert)
+library(scales)
+library(dplyr)
+library(HH)
+```
+(a) Choose one of the likert style questions from the 2019 parent survey and use a diverging stacked bar chart to show results for the 11 schools identified in the article referenced above.
+
+```{r}
+getBetterDf <- function(fileName, rowNames, colNames){
+    header1 <- read_excel(fileName, sheet=4, n_max=0) %>% names() %>%  gsub("\\.\\..*",NA, .) %>% zoo::na.locf(.)
+    header2 <- read_excel(fileName, sheet=4, n_max=1, skip=1) %>% names() %>%  gsub("\\..*","", .)
+    header <- paste(header1[4:length(header1)],"?", header2)
+    header <- do.call(c, list(header1[1:3], header))
+    
+    raw <- read_excel(fileName, sheet=4)
+    raw <- as.data.frame(raw[3:nrow(raw),])
+    
+    data <- raw %>% filter(DBN %in% rowNames)
+    
+    colnames(data) <- header
+    col <- grep(colNames, names(data), value=T)
+    data <- data[, col]
+    colnames(data) <- c("school","strongly disagree","disagree","agree","strongly agree","I don't know")
+    data[, 2:ncol(data)] <- lapply(data[, 2:ncol(data)], function(x) as.numeric(as.character(x)))
+    data
+}
+
+```
+
+```{r}
+data <- getBetterDf("2019-public-data-file_parent.xlsx", 
+                    c('03M165','03M145','03M163','03M075','03M084','03M166','03M009','03M087','03M452','03M199','03M191'),
+                    ".*At.this.school.my.child.is.safe.*|.*School Name.*")
+
+HH::likert(school~., data, main="Parent Survey", 
+           ylab="School Name", positive.order=TRUE, 
+           sub="Question: At this school my child is safe")
+```
+(b) Choose a question that was asked in 2014 and 2019 and compare results for the three schools discussed most in the article: P.S. 199, P.S. 191, and P.S. 452. You may use two separate diverging stacked bar charts or combine all the information in one.
+
+```{r}
+data2014 <- getBetterDf("2014_20School_20Survey.xlsx", 
+                    c('03M452','03M199','03M191'),
+                    ".*At.my.child's.school.my.child.is.safe*|.*School Name.*")
+
+data2019 <- getBetterDf("2019-public-data-file_parent.xlsx", 
+                    c('03M452','03M199','03M191'),
+                    ".*At.this.school.my.child.is.safe.*|.*School Name.*")
+```
+```{r}
+HH::likert(school~., data2014, main="Parent Survey", 
+           ylab="School Name", positive.order=TRUE, 
+           sub="Question: At this school my child is safe")
+```
+```{r}
+HH::likert(school~., data2019, main="Parent Survey", 
+           ylab="School Name", positive.order=TRUE, 
+           sub="Question: At this school my child is safe")
+```
+
+
+(c) Interpret your findings of (b) in light of the reputations of the schools as presented in the article. Are they surprising or what you would have expected?
+
+Yes and yes, they are surprising me a lot. I always thought upper west side is well be zone for high income family, students such as Fordham and the Julliard School. The fact, however, shocked me in different way. It seems 5 years ago, the parents did not consider the public school did a good job to keep their kids safe in school. Not sure what affect the schools did, but the survey show very big improvement on parent’s satisfaction rate for kid’s safety. Especially for PS452, it came with almost nothing on parent’s satisfaction and shifted parent’s view to bright side. 
+
