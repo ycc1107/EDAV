@@ -1,6 +1,8 @@
 ---
 title: "EDAV Fall 2019 PSet 4"
-output: html_document
+output:
+  html_document: default
+  pdf_document: default
 ---
 
 Read *Graphical Data Analysis with R*, Ch. 9, 11
@@ -20,7 +22,8 @@ Grading is based both on your graphs and verbal explanations. Follow all best pr
 
 ```{r}
 library(ggplot2)
-
+library(mi)
+library(tidyverse)
 ```
 ### 1. Missing values
 
@@ -29,8 +32,35 @@ You may choose your own data. The only requirement is that it has some missing v
 Use any R plotting package (`ggplot2`, `naniar`, `mi`, `extracat`, etc.) to answer the following questions. (Note that `extracat` is not currently on CRAN but you can install it from a CRAN read-only mirror on GitHub: https://github.com/cran/extracat)
 
 (a) Visualize and describe missing column patterns. Which variable has the highest number of missing values? 
+```{r}
+tbls_ls <- read_html("https://nssdc.gsfc.nasa.gov/planetary/factsheet/") %>% html_nodes( "table") %>% html_table(fill = False)
+tbls_ls[[1]] <- tbls_ls[[1]][-1,]
+colnames(tbls_ls[[1]]) <- c("Measurment","Mercury", "Venus", "Earth","Moon", "Mars","Jupiter", "Saturn","Uranus","Neptune","Pluto")
+tbls_ls[[1]] <-tbls_ls[[1]][,-5] 
+data = tbls_ls[[1]]
+data[ data == "Unknown*" ] <- NA
+data
+```
+```{r}
+x <- missing_data.frame(data)
+image(x)
+```
+```{r}
+colSums(is.na(data))
+```
+
+```{r}
+colMeans(is.na(data))
+```
+
+```{r}
+rowSums(is.na(data))
+```
+
 
 (b) Visualize and describe missing row patterns. Which row has the highest number of missing values? 
+
+from data, there is only one column has missing which Surface Pressure (bars).Tthe pressure data missed from Jupiter, Saturn, Uranus, Neptune. missing data would come from limitation of technology
 
 (c) Do correlations exist between the values of other variables and missing patterns? Investigate two missing patterns and draw conclusions such as:
 
@@ -38,12 +68,13 @@ Use any R plotting package (`ggplot2`, `naniar`, `mi`, `extracat`, etc.) to answ
 
 "There does not seem to be any correlation between `apartment type` and missing values in `last sale price`"
 
-Support your conclusions with graphs. 
+Support your conclusions with graphs.
+
+since there is only on type of missing data, it can easily find out the missing data related to distance. The further apart from Earth, the data of Surface Pressure need more technology to grather.
 
 ### 2. Time Series
 ```{r}
 library(tidyquant)
-library(tidyverse)
 ```
 
 (a) Use the **tidyquant** package to collect information on anything other than stock prices for which time series data is available. Create a multiple line chart to compare trends over time. Your chart should have at least 3 lines.
@@ -75,7 +106,9 @@ Data: https://wonder.cdc.gov/ucd-icd10.html
 
 ```{r}
 library(choroplethr)
-library("readr")
+#library(readr)
+library(maps)
+#library(viridis)
 ```
 (a) Create a series of choropleth maps in which only one variable changes, such as level of a factor variable or time.
 
@@ -86,17 +119,39 @@ https://www.nytimes.com/interactive/2017/06/30/upshot/the-best-and-worst-new-yor
 https://www.nytimes.com/interactive/2017/10/05/upshot/gun-ownership-partisan-divide.html
 
 ```{r}
-data <- read_tsv('ucd1.txt', col_names = TRUE, n_max=51) %>% as.data.frame() %>% transmute(region=tolower(State), value=Deaths/Population*100) 
-#data <- data[complete.cases(data), ] 1020
-smap <- state_choropleth(data,title = "Underlying Cause of Death, 1999-2017", legend = "Percent Deaths")
-smap
+us_status = map_data("state")
+data <- read_tsv('ucd.txt', col_names = TRUE) %>% as.data.frame() %>% transmute(region=tolower(State), value=Deaths/Population*100, year=Year) 
+data <- data[complete.cases(data), ]
+data <- left_join(us_status, data)
 ```
 
 ```{r}
+par(mfrow = c(4, 5))
+for(year in unique(data[["year"]])){
+  title <- paste("Underlying Cause of Death, ", year)
+  state_choropleth(data[data[, "year"] == year,],title = title, legend = "Percent Deaths")
+}
+```
+
+```{r}
+p0 <- ggplot(data = data,
+             mapping = aes(x = long, y = lat,
+                 group = group,
+                 fill = adjusted))
+
+p1 <- p0 + geom_polygon(color = "gray90", size = 0.05) +
+    coord_map(projection = "albers", lat0 = 39, lat1 = 45) 
+
+p2 <- p1 + scale_fill_viridis_c(option = "plasma")
+
+p2  + facet_wrap(~ year, ncol = 4)  
 
 ```
 
 (b) Interpret the graphs you drew in (a).
+
+
+
 
 ### 4. Mosaic plot (SVG / D3)
 
