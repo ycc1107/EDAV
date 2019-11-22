@@ -16,9 +16,17 @@ This assignment is designed to help you get started on the final project. Be sur
 
 a) Who's on the team? (Include names and UNIs)
 
+Yan Cheng(cy2479)
+Chengyi Chen(cc4506)
+Michi Liu(xl2904)
+Wen Fan(wf2255)
 
 b) How do you plan to divide up the work? (Grading is on a group basis. The point of asking is to encourage you to think about this.)
 
+Yan Cheng: the pipeline and framework of the whole project.
+Chengyi Chen: general statistical analysis.
+Wen Fan: spatial analysis. 
+Michi Liu: time series analysis.
 
 ### 2. The Questions
 
@@ -26,11 +34,12 @@ b) How do you plan to divide up the work? (Grading is on a group basis. The poin
 
 List three questions that you hope you will be able to answer from your research.
 
-a)
+a)Which industry is more likely to borrow more money?
 
-b)
+b)How does external environment affect the loan?
 
-c)
+c)What kind of factors affect the repayment?
+
 
 ### 3. Which output format do you plan to use to submit the project? 
 
@@ -51,11 +60,19 @@ shiny app: https://shiny.rstudio.com/
 
 (Remember that it's ok to have pieces of the project that don't fit into the chosen output format; in those cases you can provide links to the relevant material.)
 
+html_document
+
 ### 4. The Data
 
 What is your data source?  What is your method for importing data? Please be specific. Provide relevant information such as any obstacles you're encountering and what you plan to do to overcome them.
 
 [5 points]
+
+data source: LendingClub Loans Data from LendingClub official website.  
+
+importing data: We have downloaded the data whose format is .csv, so we can easily import it through [read_csv()].  
+
+obstacles: The size of this data is about 2,260,000 x 145. Compare to datasets we have used in Psets 1-4, it's relatively large. We have to bring in some new techniques to handle this dateset.
 
 
 ### 5. Provide a short summary, including 2-3 graphs, of your initial investigations. 
