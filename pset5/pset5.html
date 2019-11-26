@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Boxplots</title>
+	<script src="https://d3js.org/d3.v5.min.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+  </head>
+
+	<body>
+
+		<div style="padding: 50px; float:left;">
+		</div>
+
+		<div id="chart" style="width: 400px; float:left;">
+			<h3>Create a boxplot</h3>
+			<p>Click in the center of the blue strip to add points.</p>
+			<div id="method">
+				<input type="radio" name="method" value="add" autofocus="autofocus" onfocus="this.select()"> Add points
+				<input type="radio" name="method" value="remove"> Remove points<br>
+			</div>
+		</div>
+
+		<div style="width: 400px; float: left;">
+			<h3>How to Read a Boxplot</h3>
+			Data values: <p id="text_val"></p>
+			Outliers: <p id="ourlier"></p>
+			Upper whisker: <p id="upper"></p>
+			Q3: <p id="q3"></p>
+			Median: <p id="median"></p>
+			Q1: <p id="q1"></p>
+			Lower whisker: <p id="lower"></p>
+		</div>
+
+
+		<script type="text/javascript">
+			var width = 200,
+			    height = 400,
+			    margin = { top: 30, right: 30, bottom: 5, left: 30 },
+				dataset = [],
+				method = "",
+				radius = 4
+				duration = 1000;
+
+			var svg = d3.select("div#chart").append("svg")
+						.attr("width", 300)
+						.attr("height", 400);
+
+			var yScale = d3.scaleLinear() 
+			 				.domain([100,-100])
+			 				.range([0,365]);
+			var yScale_inverse = d3.scaleLinear() 
+							.domain([0,365])
+							.range([100,-100]);
+
+			var yAxis = d3.axisLeft()
+ 						.scale(yScale); 
+
+ 			svg.append("g").attr("class", "yAxis")
+					 .attr("transform",`translate(${margin.left},${margin.top})`) 
+ 					 .call(yAxis); 
+
+			svg.append("rect")
+			   .attr("x","50")
+			   .attr("y","25")
+			   .attr("width","200")
+			   .attr("height","370")
+			   .attr("fill","cyan")
+			   .attr("opacity", 0.4)
+
+			d3.selectAll("input").on("change", 
+					function() {
+						method = d3.select(this).attr("value");
+					});
+			
+			function addRmoveCircle(){
+				if(method=="add"){
+					svg.append("circle")
+					   .attr("cx",d3.mouse(this)[0])
+					   .attr("cy",d3.mouse(this)[1])
+					   .attr("r", radius)
+					   .attr("fill","black")
+					   .data([Math.round(yScale_inverse(d3.mouse(this)[1]-25))])
+					   .on("click", function (){ 
+						   if (method=="remove") {this.remove()}})
+			}};
+
+			function boxplot(){
+				var dataset = svg.selectAll("circle")
+								.data().sort(d3.ascending)
+
+				var q1=d3.quantile(dataset,0.25)
+				var q3=d3.quantile(dataset,0.75)
+				var median = d3.quantile(dataset, .5)
+				var interQuantileRange = q3 - q1
+				var min = q1 - 1.5 * interQuantileRange
+				var max = q1 + 1.5 * interQuantileRange
+
+				if(min < dataset[0]){
+					min = dataset[0];
+				}
+				if(max > dataset[dataset.length - 1]){
+					max = dataset[dataset.length - 1];
+				}
+
+				var upper = dataset.filter(num => num >= max);
+				var lower = dataset.filter(num => num <= min);
+
+				if(dataset.length > 0){
+					d3.select("#text_val").text(dataset)
+					d3.select("#ourlier").text([upper, lower])
+					d3.select("#q3").text(q3)
+					d3.select("#q1").text( q1)
+					d3.select("#median").text(median)
+					d3.select("#upper").text(upper)
+					d3.select("#lower").text(lower)
+				}
+
+				drawbox(q1, q3, median, upper, lower, dataset);
+
+			}
+
+			function drawbox(q1, q3, median, upper, lower, dataset){
+				var medy = yScale(median)+25,
+					q1y = yScale(q1)+25,
+					q3y = yScale(q3)+25,
+					tmpuppery = yScale(upper)+25,
+					tmplowery = yScale(lower)+25,
+					uppery = d3.min([tmpuppery, q3y]),
+					lowery = d3.max([tmplowery, q1y]);
+
+				if(dataset.length == 0){
+					updatelines(initalData);;
+				}
+				else if (dataset.length == 1){
+					updateLocation(q1y, medy, q3y, uppery,lowery, 0);
+				}
+				else if(dataset.length > 1){
+					updateLocation(q1y, medy, q3y, uppery,lowery, duration);
+				}
+				
+
+				svg.selectAll("circle")
+					.filter(d => d > upper || d < lower)
+					.attr("fill", "red")
+
+			}
+
+			function updateLocation(q1y, medy, q3y, uppery,lowery, duration){
+				var updatedata = [{"id": "q1line", "x1": 110, "y1": q1y, "x2": 190, "y2": q1y},
+								  {"id": "q3line", "x1": 110, "y1": q3y, "x2": 190, "y2": q3y},
+								  {"id": "middle", "x1": 110, "y1": medy, "x2": 190, "y2": medy},
+								  {"id": "lboundary", "x1": 110, "y1": q1y, "x2": 190, "y2": q3y},
+								  {"id": "rboundary", "x1": 190, "y1": q3y, "x2": 110, "y2": q1y},
+								  {"id": "upper", "x1": 110, "y1": uppery, "x2": 190, "y2": uppery},
+								  {"id": "lower", "x1": 110, "y1": lowery, "x2": 190, "y2": lowery},
+								  {"id": "upperboundary", "x1": 150, "y1": uppery, "x2": 150, "y2": q3y},
+								  {"id": "lowerboundary", "x1": 150, "y1": lowery, "x2": 150, "y2": q1y}
+						];
+				updatelines(updatedata, duration);
+			}
+			
+			function updatelines(dataset, duration){
+				var line = svg.selectAll("line")
+							  .data(dataset);
+				line.enter()
+					.append("line")
+					.transition()
+					.duration(duration)
+					.attr("id", d => d.id)
+					.attr("x1", d => d.x1)
+					.attr("x2", d => d.x2)
+					.attr("y1", d => d.y1)
+					.attr("y2", d => d.y2)
+					.attr("stroke","black")
+					.attr("stroke-width","1.5")
+
+				line.exit().remove();
+
+			}
+			
+			var initalData = [{"id": "q1line", "x1": 0, "y1": 0, "x2": 0, "y2": 0},
+							{"id": "q3line", "x1": 0, "y1": 0, "x2": 0, "y2": 0},
+							{"id": "middle", "x1": 0, "y1": 0, "x2": 0, "y2": 0},
+							{"id": "lboundary", "x1": 0, "y1": 0, "x2": 0, "y2": 0},
+							{"id": "rboundary", "x1": 0, "y1": 0, "x2": 0, "y2": 0},
+							{"id": "upper", "x1": 0, "y1": 0, "x2": 0, "y2": 0},
+							{"id": "lower", "x1": 0, "y1": 0, "x2": 0, "y2": 0},
+							{"id": "upperboundary", "x1": 0, "y1": 0, "x2": 0, "y2": 0},
+							{"id": "lowerboundary", "x1": 0, "y1": 0, "x2": 0, "y2": 0}
+			];
+
+			updatelines(initalData, 0);
+			svg.select("rect").on("click", addRmoveCircle)
+			svg.on("click",boxplot);
+
+
+			
+		</script>
+
+	</body>
+
+</html>
