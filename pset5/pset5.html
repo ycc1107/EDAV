@@ -23,13 +23,13 @@
 
 		<div style="width: 400px; float: left;">
 			<h3>How to Read a Boxplot</h3>
-			Data values: <p id="text_val"></p>
-			Outliers: <p id="ourlier"></p>
-			Upper whisker: <p id="upper"></p>
-			Q3: <p id="q3"></p>
-			Median: <p id="median"></p>
-			Q1: <p id="q1"></p>
-			Lower whisker: <p id="lower"></p>
+			<p id="text_val">Data values: </p>
+			<p id="ourlier">Outliers: </p>
+			<p id="upper">Upper whisker: </p>
+			<p id="q3">Q3: </p>
+			<p id="median">Median: </p>
+			<p id="q1">Q1: </p>
+			<p id="lower">Lower whisker: </p>
 		</div>
 
 
@@ -72,6 +72,19 @@
 					function() {
 						method = d3.select(this).attr("value");
 					});
+
+			var initalData = [{"id": "q1line", "x1": 0, "y1": 0, "x2": 0, "y2": 0},
+							{"id": "q3line", "x1": 0, "y1": 0, "x2": 0, "y2": 0},
+							{"id": "middle", "x1": 0, "y1": 0, "x2": 0, "y2": 0},
+							{"id": "lboundary", "x1": 0, "y1": 0, "x2": 0, "y2": 0},
+							{"id": "rboundary", "x1": 0, "y1": 0, "x2": 0, "y2": 0},
+							{"id": "upper", "x1": 0, "y1": 0, "x2": 0, "y2": 0},
+							{"id": "lower", "x1": 0, "y1": 0, "x2": 0, "y2": 0},
+							{"id": "upperboundary", "x1": 0, "y1": 0, "x2": 0, "y2": 0},
+							{"id": "lowerboundary", "x1": 0, "y1": 0, "x2": 0, "y2": 0}
+			];
+
+			updatelines(initalData, 0);
 			
 			function addRmoveCircle(){
 				if(method=="add"){
@@ -85,39 +98,37 @@
 						   if (method=="remove") {this.remove()}})
 			}};
 
-			function boxplot(){
-				var dataset = svg.selectAll("circle")
-								.data().sort(d3.ascending)
+			function updatelines(dataset, duration){
+				var line = svg.selectAll("line")
+							  .data(dataset);
+				line.enter()
+					.append("line")
+					.transition()
+					.duration(duration)
+					.attr("id", d => d.id)
+					.attr("x1", d => d.x1)
+					.attr("x2", d => d.x2)
+					.attr("y1", d => d.y1)
+					.attr("y2", d => d.y2)
+					.attr("stroke","black")
+					.attr("stroke-width","1.5")
 
-				var q1=d3.quantile(dataset,0.25)
-				var q3=d3.quantile(dataset,0.75)
-				var median = d3.quantile(dataset, .5)
-				var interQuantileRange = q3 - q1
-				var min = q1 - 1.5 * interQuantileRange
-				var max = q1 + 1.5 * interQuantileRange
+				line.exit().remove();
 
-				if(min < dataset[0]){
-					min = dataset[0];
-				}
-				if(max > dataset[dataset.length - 1]){
-					max = dataset[dataset.length - 1];
-				}
-
-				var upper = dataset.filter(num => num >= max);
-				var lower = dataset.filter(num => num <= min);
-
-				if(dataset.length > 0){
-					d3.select("#text_val").text(dataset)
-					d3.select("#ourlier").text([upper, lower])
-					d3.select("#q3").text(q3)
-					d3.select("#q1").text( q1)
-					d3.select("#median").text(median)
-					d3.select("#upper").text(upper)
-					d3.select("#lower").text(lower)
-				}
-
-				drawbox(q1, q3, median, upper, lower, dataset);
-
+			}
+			
+			function updateLocation(q1y, medy, q3y, uppery,lowery, duration){
+				var updatedata = [{"id": "q1line", "x1": 110, "y1": q1y, "x2": 190, "y2": q1y},
+								  {"id": "q3line", "x1": 110, "y1": q3y, "x2": 190, "y2": q3y},
+								  {"id": "middle", "x1": 110, "y1": medy, "x2": 190, "y2": medy},
+								  {"id": "lboundary", "x1": 110, "y1": q1y, "x2": 190, "y2": q3y},
+								  {"id": "rboundary", "x1": 190, "y1": q3y, "x2": 110, "y2": q1y},
+								  {"id": "upper", "x1": 110, "y1": uppery, "x2": 190, "y2": uppery},
+								  {"id": "lower", "x1": 110, "y1": lowery, "x2": 190, "y2": lowery},
+								  {"id": "upperboundary", "x1": 150, "y1": uppery, "x2": 150, "y2": q3y},
+								  {"id": "lowerboundary", "x1": 150, "y1": lowery, "x2": 150, "y2": q1y}
+						];
+				updatelines(updatedata, duration);
 			}
 
 			function drawbox(q1, q3, median, upper, lower, dataset){
@@ -146,51 +157,47 @@
 
 			}
 
-			function updateLocation(q1y, medy, q3y, uppery,lowery, duration){
-				var updatedata = [{"id": "q1line", "x1": 110, "y1": q1y, "x2": 190, "y2": q1y},
-								  {"id": "q3line", "x1": 110, "y1": q3y, "x2": 190, "y2": q3y},
-								  {"id": "middle", "x1": 110, "y1": medy, "x2": 190, "y2": medy},
-								  {"id": "lboundary", "x1": 110, "y1": q1y, "x2": 190, "y2": q3y},
-								  {"id": "rboundary", "x1": 190, "y1": q3y, "x2": 110, "y2": q1y},
-								  {"id": "upper", "x1": 110, "y1": uppery, "x2": 190, "y2": uppery},
-								  {"id": "lower", "x1": 110, "y1": lowery, "x2": 190, "y2": lowery},
-								  {"id": "upperboundary", "x1": 150, "y1": uppery, "x2": 150, "y2": q3y},
-								  {"id": "lowerboundary", "x1": 150, "y1": lowery, "x2": 150, "y2": q1y}
-						];
-				updatelines(updatedata, duration);
+			function boxplot(){
+				var dataset = svg.selectAll("circle")
+								.data().sort(d3.ascending)
+
+				var q1=d3.quantile(dataset,0.25)
+				var q3=d3.quantile(dataset,0.75)
+				var median = d3.quantile(dataset, .5)
+				var interQuantileRange = q3 - q1
+				var min = q1 - 1.5 * interQuantileRange
+				var max = q1 + 1.5 * interQuantileRange
+
+				if(min < dataset[0]){
+					min = dataset[0];
+				}
+				if(max > dataset[dataset.length - 1]){
+					max = dataset[dataset.length - 1];
+				}
+
+				for ( var i=0; i<dataset.length; i++){
+    				if(dataset[i]<=max){var upper=dataset[i]}}
+
+    			for ( var i=dataset.length-1; i>=0; i--){
+    				if(dataset[i]>=min){var lower=dataset[i]}}
+
+				var outter = [];
+				for ( var i=0; i<dataset.length; i++){
+    				if(dataset[i]<=min || dataset[i] >=max){outter.push(dataset[i])}}
+
+				if(dataset.length > 0){
+					d3.select("#text_val").text("Data values: " + dataset)
+					d3.select("#ourlier").text("Outliers: " + outter)
+					d3.select("#q3").text("Q3: " + q3)
+					d3.select("#q1").text("Q1: " + q1)
+					d3.select("#median").text("Median: " + median)
+					d3.select("#upper").text("Upper whisker: " + upper)
+					d3.select("#lower").text("Lower whisker: " + lower)
+				}
+
+				drawbox(q1, q3, median, upper, lower, dataset);
 			}
-			
-			function updatelines(dataset, duration){
-				var line = svg.selectAll("line")
-							  .data(dataset);
-				line.enter()
-					.append("line")
-					.transition()
-					.duration(duration)
-					.attr("id", d => d.id)
-					.attr("x1", d => d.x1)
-					.attr("x2", d => d.x2)
-					.attr("y1", d => d.y1)
-					.attr("y2", d => d.y2)
-					.attr("stroke","black")
-					.attr("stroke-width","1.5")
 
-				line.exit().remove();
-
-			}
-			
-			var initalData = [{"id": "q1line", "x1": 0, "y1": 0, "x2": 0, "y2": 0},
-							{"id": "q3line", "x1": 0, "y1": 0, "x2": 0, "y2": 0},
-							{"id": "middle", "x1": 0, "y1": 0, "x2": 0, "y2": 0},
-							{"id": "lboundary", "x1": 0, "y1": 0, "x2": 0, "y2": 0},
-							{"id": "rboundary", "x1": 0, "y1": 0, "x2": 0, "y2": 0},
-							{"id": "upper", "x1": 0, "y1": 0, "x2": 0, "y2": 0},
-							{"id": "lower", "x1": 0, "y1": 0, "x2": 0, "y2": 0},
-							{"id": "upperboundary", "x1": 0, "y1": 0, "x2": 0, "y2": 0},
-							{"id": "lowerboundary", "x1": 0, "y1": 0, "x2": 0, "y2": 0}
-			];
-
-			updatelines(initalData, 0);
 			svg.select("rect").on("click", addRmoveCircle)
 			svg.on("click",boxplot);
 
