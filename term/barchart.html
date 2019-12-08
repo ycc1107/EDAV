@@ -37,7 +37,7 @@ var chart = d3.select(".chart")
 var bar = chart.selectAll("g")
     .data(data)
     .enter().append("g")
-    .attr("transform", function(d, i) { return "translate(" + (left+i * Binwidth) + ","+ (y(d)-margin.bottom)+")"; })
+    .attr("transform", function(d, i) { return "translate(" + (left+i * Binwidth) + ","+ (y(d)+margin.top)+")"; })
     .on("mouseover", handleMouseOver)
     .on("mouseout",handleMouseOut);
 
@@ -78,7 +78,7 @@ function handleMouseOut(d, i) {
 
 bar.append("rect")
     .attr("width", Binwidth - 1)
-    .attr("height", function(d) {return y(0); })
+    .attr("height", function(d) {return 0; })
     ;
 
 //show the value in this array
@@ -92,7 +92,7 @@ bar.append("rect")
 d3.select("svg").selectAll("rect")
     .transition()
     .duration(800)
-    .attr("height", function(d) { return Height-y(d); })
+    .attr("height", function(d) { return Height-margin.top-y(d)-margin.bottom; })
     .delay(function(d,i){console.log(i) ; return(i*100)})
   ;
 
