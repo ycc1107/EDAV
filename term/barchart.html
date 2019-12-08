@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<head>
+    <title>Lending club graph</title>
+    <meta charset="utf-8">
+	
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+</head>
+
+<body>
+    <div id="master_content-full" >
+        <svg class="chart" width="920" height="500"> 
+
+        </svg>
+    </div>
+</body>
+
+<script>
+
+var data = [4, 8, 15, 16, 23, 42,100,20,35,40,55,60,25,40,55,60,67,34,23,25];
+
+var Binwidth = 25,
+    Height = 450;
+var margin = {top: 100, right: 0, bottom: 25, left: 30};
+var left = 30;
+
+//y axis
+var y = d3.scaleLinear()
+    .domain([0, d3.max(data)])
+    .range([Height-margin.top-margin.bottom,0]);
+
+
+//set the size of svg we're going to draw the bar chart on
+var chart = d3.select(".chart")
+    .attr("width", Binwidth * data.length+50)
+    .attr("height", Height);
+
+var bar = chart.selectAll("g")
+    .data(data)
+    .enter().append("g")
+    .attr("transform", function(d, i) { return "translate(" + (left+i * Binwidth) + ","+ (y(d)-margin.bottom)+")"; })
+    .on("mouseover", handleMouseOver)
+    .on("mouseout",handleMouseOut);
+
+
+
+function handleMouseOver(d, i) {  // Add interactivity
+    // Use D3 to select element, change color and size
+    d3.select(this).select("rect")
+        .style("fill", "orange");
+
+    // Specify where to put label of text
+    svg=d3.select("svg")
+    d3.select(this).append("text")
+        .attr("id", "t" + i + "-" + d)
+        .attr("x",13)
+        .attr("y",6)
+        .attr("class","annotation")
+        .attr("dy", ".35em")
+        .text(function(d) {return d; });
+    
+    d3.select("svg").append("div")
+        .attr("position","absolute")
+        .attr("top","100px")
+        .attr("left","100px")
+        .attr("width",80)
+        .attr("height",80)
+        .text(function(d) {return d; });
+}
+
+function handleMouseOut(d, i) {
+    // Use D3 to select element, change color back to normal
+    d3.select(this).select("rect")
+        .style("fill", "steelblue");
+
+    // Select text by id and then remove
+    d3.select("#t" + i + "-" + d).remove();  // Remove text location
+}
+
+bar.append("rect")
+    .attr("width", Binwidth - 1)
+    .attr("height", function(d) {return y(0); })
+    ;
+
+//show the value in this array
+// bar.append("text")
+//     .attr("x", 13)
+//     .attr("y", 6 )
+//     .attr("dy", ".35em")
+//     .text(function(d) { return d; }); 
+
+//bar animation
+d3.select("svg").selectAll("rect")
+    .transition()
+    .duration(800)
+    .attr("height", function(d) { return Height-y(d); })
+    .delay(function(d,i){console.log(i) ; return(i*100)})
+  ;
+
+
+
+var yAxis = d3.axisLeft().scale(y); 
+
+d3.select("svg").append("g").attr("class", "yAxis")
+         .attr("transform",`translate(${margin.left}, ${margin.top})`) .call(yAxis);
+
+
+
+</script>
+<style>
+
+		.chart rect {
+		  fill: steelblue;
+		}
+
+		.chart text {
+		  fill: black;
+		  font: 10px sans-serif;
+		  text-anchor: end;
+		}
+
+        .annotation {
+          fill: black;
+		  font: 10px sans-serif;
+		  text-anchor: end;
+        }
+
+	</style>
