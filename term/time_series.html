@@ -155,6 +155,14 @@
 		return new Date(d.date)
 	})
 
+	var loan_value = graphData.map(function(d){
+		return d.value
+	})
+	
+	var sizeScale = d3.scaleLinear()
+			.domain([Math.min.apply(Math, loan_value), Math.max.apply(Math, loan_value)])
+			.range([1,50])
+
 	var displaySites = function(data) {
 		var sites = svg.selectAll(".site")
 		  .data(data)
@@ -171,7 +179,11 @@
 		  })
 		  .attr("r", 1)
 		  .transition().duration(400)
-			.attr("r", 10);
+			.attr("r", function(d){
+				var rad = sizeScale(d.value)
+				console.log(d.value)
+				return rad
+			});
 
 		sites.exit()
 		.transition().duration(200)
