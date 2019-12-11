@@ -1,0 +1,41 @@
+
+{% extends 'temp.html' %}
+{% block title %}Stats{% endblock %}
+{% block div %}
+    <style>
+        #video{
+        height: 100%;
+        width: 100%;
+        background: #D3D3D3;
+    }
+        .loader.hidden{
+            animation: fadeOut 15s;
+            animation-fill-mode:forwards;
+        }
+        @keyframes fadeOut{
+            100% {
+                opacity: 0;
+                visibility: hidden;
+            }
+        }
+    </style>
+
+    <div class="loader">
+            <video id="video" playsinline="" muted="" autoplay="" loop="" data-silent="true" src="https://cdn.dribbble.com/users/1319489/screenshots/2946353/monkey-1.gif?vid=1">
+            </video>
+            <div id="video-controls" style="display: none;">
+            <span class="mute-controls mute-mute">
+            </span>
+            </div>
+            <noscript>
+                <img src="https://cdn.dribbble.com/users/1319489/screenshots/2946353/monkey-1.gif" alt="Monkey 1" />
+            </noscript>
+    </div>
+
+    <script>
+        window.addEventListener("load", function(){
+            const loader = document.querySelector(".loader");
+            loader.className += " hidden";
+        })
+    </script>
+{% endblock %}
