@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en"></html>
+    <head>
+        <meta charset='utf-8'>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.3/css/bootstrap.min.css">
+        <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+        <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/buttons/1.5.1/js/dataTables.buttons.min.js"></script>
+        <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/select/1.2.5/js/dataTables.select.min.js"></script>
+        <script type="text/javascript" charset="utf8" src="https://editor.datatables.net/extensions/Editor/js/dataTables.editor.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.3/js/bootstrap.min.js"></script>
+        <script src="https://cdn.rawgit.com/google/code-prettify/master/loader/run_prettify.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.min.js"></script>
+        <script src="https://github.com/nagix/chartjs-plugin-streaming/releases/download/v1.7.1/chartjs-plugin-streaming.min.js"></script>
+
+
+        <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+
+
+        <title>{% block title %}{% endblock %}</title>
+    </head>
+
+    <body>
+        <div id='ptmenu'>
+        <ul>
+        <li class='active has-sub'><a href='#'><span>Status</span></a>
+            <ul>
+                <li class='last'><a href='/downloader'><span>Downloader Status</span></a>
+                </li>
+                <li class='has-sub'><a href='/hist'><span>Job Status</span></a>
+                    <ul>
+                        <li class='last'><a href='/hist'><span>Job Status Hist</span></a>
+                        <li class='last'><a href='/current'><span>Job Status Today</span></a>
+                    </ul>
+                </li>
+            </ul>
+        </li>
+        <li class='last'><a href='/liveconnection'><span>Database Live</span></a></li>
+        <li class='active has-sub'><a href='#'><span>MO Tools</span></a>
+            <ul>
+                <li class='last'><a href='/mo'><span>Bamboo Skipper</span></a>
+                <li class='last'><a href='/cax'><span>CAX Search</span></a>
+            </ul>
+        <li class='last'><a href='/contact'><span>Contact</span></a></li>
+
+        </ul>
+        </div>
+        <div></div>{% block div %}{% endblock %}</div>
+    </body>
+<html>
