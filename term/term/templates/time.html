@@ -25,6 +25,7 @@
 	</svg>
 	
     <script>
+	var graphData= JSON.parse({{time_data|tojson|safe}});
     var svg = d3.select("svg");
     var path = d3.geoPath();
     d3.json("https://d3js.org/us-10m.v1.json", function(error, us) {
@@ -42,16 +43,11 @@
 	
 	// Slider
 	
-	var graphData= JSON.parse({{time_data|tojson|safe}});
-	console.log(graphData)
+	
 	var projection = d3.geoAlbersUsa()
 		.scale(1280)
 		.translate([960 / 2, 600 / 2]);
-		// date: "2008-01",
-		// 			state: "DC",
-		// 			loan_amnt: 26000,
-		// 			value: 26000
-	  
+
 
 	var lon_lat = [{state:"AK",latitude:63.588753,longitude:-154.493062},
 	{state:"AL",latitude:32.318231,longitude:-86.902298},

@@ -1,4 +1,4 @@
-date,addr_state,loan_amnt,value
+date,state,loan_amnt,value
 2007-06,CO,2600,2600
 2007-06,CT,28000,28000
 2007-06,FL,2000,2000
