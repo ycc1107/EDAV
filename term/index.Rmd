@@ -1,0 +1,13 @@
+--- 
+title: "5702 Final Report"
+author: "
+Cheng Yan(cy2479)
+Chengyi Chen(cc4506)
+Michi Liu(xl2904)
+Wen Fan(wf2255)"
+date: "`r Sys.Date()`"
+site: bookdown::bookdown_site
+---
+
+# Introduction
+
