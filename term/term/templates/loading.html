@@ -1,25 +1,11 @@
 
-{% extends 'temp.html' %}
-{% block title %}Stats{% endblock %}
-{% block div %}
-    <style>
-        #video{
-        height: 100%;
-        width: 100%;
-        background: #D3D3D3;
-    }
-        .loader.hidden{
-            animation: fadeOut 15s;
-            animation-fill-mode:forwards;
-        }
-        @keyframes fadeOut{
-            100% {
-                opacity: 0;
-                visibility: hidden;
-            }
-        }
-    </style>
-
+<html>
+<title>Loading</title>
+<header>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+        <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles_loading.css') }}">
+        <meta http-equiv="refresh" content="5;url=/stats" />
+</header>
     <div class="loader">
             <video id="video" playsinline="" muted="" autoplay="" loop="" data-silent="true" src="https://cdn.dribbble.com/users/1319489/screenshots/2946353/monkey-1.gif?vid=1">
             </video>
@@ -32,10 +18,25 @@
             </noscript>
     </div>
 
+    <div class="wrap">
+            <div class="loading">
+              <div class="bounceball"></div>
+              <div class="text">NOW LOADING</div>
+            </div>
+    </div>
+
     <script>
-        window.addEventListener("load", function(){
-            const loader = document.querySelector(".loader");
-            loader.className += " hidden";
+        // window.addEventListener("load", function(){
+        //     const loader = document.querySelector(".loader");
+        //     loader.className += " hidden";
+        // })
+
+        $(function(){
+            setTimeout(function(){
+            $("div#loader").fadeOut(1000,function(){
+            window.location.href = "/;"
         })
+        },6000)
+ });
     </script>
-{% endblock %}
+</html>

@@ -11,75 +11,56 @@ app = Flask(__name__,
 COL_CARE = ["loan_amnt", "loan_status", "zip_code", "annual_inc", "term", "int_rate",
             "grade", "purpose", "issue_d", "addr_state"]
 
-DATA_CACHE = None
-
-def memoize(function):
-  memo = {}
-  def wrapper(*args):
-    if args in memo:
-      return memo[args]
-    else:
-      rv = function(*args)
-      memo[args] = rv
-      return rv
-  return wrapper
-
-def load_data():
-    raw_data = pd.read_csv("loan.csv")
-    DATA_CACHE = raw_data[COL_CARE]
+TIME_DATA_CACHE = None
+STATS_DATA_CACHE = None
+GEO_DATA_CACHE = None
 
 
-def process_stats():
-    data = data.groupby(["issue_d"])[["loan_amnt"]].agg(np.sum).reset_index() 
-    data = data.to_dict(orient="records")
-
-    return data
-
-def process_bytime():
-    data = data.groupby(["issue_d", "addr_state"])[["loan_amnt"]].agg(np.sum).reset_index() 
-    data = data.to_dict(orient="records")
-
-    return data
-
-def process_bygeo():
-    data["addr_state"] = "US." + data["addr_state"]
-    data = data.groupby(["addr_state", "zip_code"])[["loan_amnt", "annual_inc"]].agg(np.sum).reset_index() 
-    data = data.to_dict(orient="records")
-
-    return data
-
-@memoize
-def dataprocess(data_type):
-    PROCESS_FUNC = {"bystats": process_stats,
-                    "bytime": process_bytime,
-                    "bygeo": process_bygeo}
-    data = PROCESS_FUNC[data_type]()
-
-    # data1, data2 = {data_type: {
-    #     "state": data1,
-    #     "county": data2,
-    # }}
-
-    return json.dumps(data, indent=2)
-    
-@app.route("/")
-def index():
-    
+@app.route("/loading")
+def loading():
     return render_template("loading.html")
 
-@app.route("/bytime")
-def bytime():
-    jsonify_data = dataprocess("bytime")  
-    return render_template("index.html", data=jsonify_data)
+@app.route("/stats")
+def bystats():
+    jsonify_data = json.dumps(STATS_DATA_CACHE, indent=2)
+    return render_template("stats.html", stats_data=jsonify_data)
 
-@app.route("/bygeo")
+@app.route("/timeseries")
+def bytime():
+    jsonify_data = json.dumps(TIME_DATA_CACHE, indent=2)
+    return render_template("time.html", time_data=jsonify_data)
+
+@app.route("/geomap")
 def bygeo():
-    jsonify_data = dataprocess("bygeo")  
-    return render_template("index.html", data=jsonify_data)
+    jsonify_data = json.dumps(GEO_DATA_CACHE, indent=2)
+    return render_template("geomap.html", data=jsonify_data)
+
+@app.route("/report")
+def report():
+    return render_template("report.html")
 
 @app.route("/contact")
 def contact():
     return render_template("contact.html")
+
+def load_data():
+    import time
+    s = time.time()
+    global TIME_DATA_CACHE
+    global STATS_DATA_CACHE
+    global GEO_DATA_CACHE
+
+    STATS_DATA_CACHE = pd.read_csv("stats_data.csv").to_dict("records")
+    TIME_DATA_CACHE = pd.read_csv("time_data.csv").to_dict("records")
+    GEO_DATA_CACHE = pd.read_csv("geo_date.csv").to_dict("records")
+    
+    print(time.time() - s)
+
+@app.before_first_request
+def loading_data():
+    from threading import Thread
+    loadint_tr = Thread(target=load_data)
+    loadint_tr.start()
 
 if __name__ == "__main__":
     app.run(debug=True)
