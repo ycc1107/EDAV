@@ -1,1 +1,38 @@
 # Missing values
+
+---
+title: "missing-value"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Load library
+
+```{r}
+library(tidyverse)
+library(extracat)
+```
+
+### Load data 
+
+```{r}
+index = c('loan_amnt','issue_d','annual_inc','addr_state','grade','purpose','loan_status','home_ownership','emp_length')
+df <- read.csv(file="loan.csv", header=TRUE, sep=",")[index]
+df[df==""] <- NA
+df[df=="n/a"] <- NA
+```
+
+### Missing column pattern graph and analysis
+
+```{r}
+visna(df, sort = 'b')
+```
+
+This is the graph that describes missing column pattern. It shows that we have some missing values in variables 'emp_length' and 'annual_income'. The missing pattern shows that:  
+`1. Most of missing values is in the variable 'emp_length'.  
+`2. There is no record that have missing values in these two variables at the same time.   
+`3. The missing values take only a small (about 5%) part in the total number of records.   
+In our data processing and analysis part, we will simply delete those records with missing values.
