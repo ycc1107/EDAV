@@ -17,9 +17,10 @@
 	}
 </style>
     <svg width="960" height="600">
-	<h2>Time</h2>
+	<h2>Loan Amount by Time and Location</h2>
 	<div class="row align-items-center">
-		<div class="col-sm-2"><p id="value-time"></p></div>
+		<div class="col-sm-2"><p id="value-year"></p></div>
+		<div class="col-sm-2"><p id="value-month"></p></div>
 		<div class="col-sm"><div id="slider-time"></div></div>
 	</div>
 	</svg>
@@ -101,12 +102,41 @@
 	{state:"WI",latitude:43.78444,longitude:-88.787868},
 	{state:"WV",latitude:38.597626,longitude:-80.454903},
 	{state:"WY",latitude:43.075968,longitude:-107.290284}]
+
 	var dataTime2 = graphData.map(function(d){
-		return new Date(d.date)
+		d_date = new Date(d.date)
+		return new Date(d_date.getFullYear(), d_date.getMonth()+1, 1)
 	})
+
+	var minDate = d3.min(dataTime2)
+	var maxDate = d3.max(dataTime2)
+	var numMonth = 12*(maxDate.getFullYear() - minDate.getFullYear())+(maxDate.getMonth()-minDate.getMonth())
+
+	dateTime = []
+	for (i=0; i<=numMonth; i+=4){
+		temp = new Date(minDate.getFullYear(), minDate.getMonth()+i, 1)
+		dateTime.push(temp)
+	}
+	
+	var loan_value = graphData.map(function(d){
+		return d.value
+	})
+	
+	var sizeScale = d3.scaleLinear()
+			.domain([Math.min.apply(Math, loan_value), Math.max.apply(Math, loan_value)])
+			.range([5,50])
+
 	var displaySites = function(data) {
 		var sites = svg.selectAll(".site")
-		  .data(data)
+		  .data(data, d => d.state)
+		  
+		sites.transition()
+			.duration(400)
+			.attr("r",function(d) {
+				var rad = sizeScale(d.value)
+				return rad
+			})
+		  
 		sites.enter().append("circle")
 		  .attr("class", "site")
 		  .attr("cx", function(d) {
@@ -117,29 +147,44 @@
 		    var mystate = lon_lat.find(o => o.state === d.state)
 			return projection([mystate.longitude, mystate.latitude])[1];
 		  })
-		  .attr("r", 1)
+		  .attr("r", 0)
 		  .transition().duration(400)
-			.attr("r", 10);
+			.attr("r", function(d){
+				var rad = sizeScale(d.value)
+				return rad
+			});
+			
 		sites.exit()
 		.transition().duration(200)
-		  .attr("r",1)
+		  .attr("r",0)
 		  .remove();
+		
+		
 	};
+	
 	var sliderTime = d3
 		.sliderBottom()
-		.min(d3.min(dataTime2)-1)
+		.min(d3.min(dataTime2)-1000000000)
 		.max(d3.max(dataTime2))
-		//.step(1000 * 60 * 60 * 24 * 30)
+		.step(1000 * 60 * 60 * 24)
 		.width(900)
 		.displayValue(false)
-		.tickFormat(d3.timeFormat('%b %Y'))
-		.tickValues(dataTime2)
+		.tickFormat(d3.timeFormat('%b'))
+		.tickValues(dateTime)
 		//.default(new Date(1998, 10, 3))
 		.on('onchange', val => {
 			var newData = (graphData).filter(function(d){
-				temp = new Date(d.date).valueOf()
-				return temp <= val.valueOf()
+				d_date = new Date(d.date)
+				temp = new Date(d_date.getFullYear(), d_date.getMonth()+1, 1)
+
+				val_date = new Date(val)
+				val_1 = new Date(val_date.getFullYear(), val_date.getMonth(), 1)
+				val_2 = new Date(val_date.getFullYear(), val_date.getMonth()+1, 0)
+
+				return temp >= val_1 && temp <= val_2
 			});
+			d3.select('p#value-year').text("Year: "+d3.timeFormat('%Y')(val));
+			d3.select('p#value-month').text("Month: "+d3.timeFormat('%m')(val));
 			displaySites(newData);
 			}
 		  //d3.select('p#value-time').text(d3.timeFormat('%Y-%M')(val));
@@ -153,7 +198,8 @@
 		.append('g')
 		.attr('transform', 'translate(30,30)');
 	gTime.call(sliderTime);
-	d3.select('p#value-time').text(d3.timeFormat('%Y')(sliderTime.value()));
-	//Color Slider
+	d3.select('p#value-year').text("Year: "+d3.timeFormat('%Y')(sliderTime.value()));
+	d3.select('p#value-month').text("Month: "+d3.timeFormat('%m')(sliderTime.value()));
+
     </script>
 {% endblock %}
