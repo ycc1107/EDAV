@@ -25,6 +25,10 @@ loan <- read.csv(file="E:\\Columbia University\\course\\EXPLORATORY DATA ANALYSI
 Generally speaking, the amount of loan has a large range. The median of loan amount is 12,900 dollars, the highest is 400,00 dollars with 33,368 rows corresponding to it and the lowest is 500 dollars with only 11 records getting that. 
 Over half of the rows range from 8,000(25% quantile) to 20,000(75% quantile).  
 
+columns invovled: 
+
+loan_amount: amount of money requested by the borrower
+
 ```{r}
 Desc(loan$loan_amnt, main = "Loan amount distribution", plotit = TRUE)
 
@@ -32,6 +36,11 @@ Desc(loan$loan_amnt, main = "Loan amount distribution", plotit = TRUE)
 
 
 Time series: As time goes on, the total amount of loan is increasing. Before 2014 the amount of loan increases steadyly, but afterwards it still goes up but fluctuately. In 2016, it hit the peak at over 8.0*10^8 dollars. we could observe there is a significant growth in business since the start of 2012 and from 2014 to 2015Q4, monthly loan amount and volume have been increasing drastically.However, from the graph we could see the growth during the spikes is very unstable.
+
+columns invovled: 
+
+loan_amount: amount of money requested by the borrower
+issue_d: the month which the loan was funded	
 
 ```{r pressure, echo=FALSE}
 loan$issue_d <- as.Date(gsub("^", "01-", loan$issue_d), format="%d-%b-%Y")
@@ -46,9 +55,14 @@ ts_amnt <- ggplot(amnt_df,
 ts_amnt + geom_line() + xlab("Date issued")
 ```
 
-Categories:  This dataset classify all the loans into different categories, from A to G.(The loan grade is the result of a formula that takes into account not only credit score, but also a combination of several indicators of credit risk from the credit report and loan application.) 
+Categories:  This dataset classify all the loans into different categories, from A to G.
 
 Grade C gets the most loan, following by B and A. The amount of loan decreases from D to G.
+
+columns invovled: 
+
+loan_amount: amount of money requested by the borrower
+grade: The loan grade is the result of a formula that takes into account not only credit score, but also a combination of several indicators of credit risk from the credit report and loan application.
 
 ```{r}
 ggplot(loan, aes(x=grade, y=loan_amnt, fill=grade)) +
@@ -57,6 +71,7 @@ ggplot(loan, aes(x=grade, y=loan_amnt, fill=grade)) +
 ```
 
 To distribution of the loan amount using histogram according to the type of loan grade. From this graph, we could observe that all the categories have similar distributions, with the peak at around 12,000. 
+
 ```{r}
 ggplot(data=loan,aes(loan_amnt, col=grade))+
   geom_histogram(bins=40) + 
@@ -64,6 +79,7 @@ ggplot(data=loan,aes(loan_amnt, col=grade))+
 ```
 
 To distribution of the loan amount using density plot according to the type of loan grade. We found similar patterns among A, B, C, D, and similar patterns among E, F, G.
+
 ```{r}
 ggplot(data=loan,aes(loan_amnt, fill=grade))+
   geom_density(alpha=0.25) + 
@@ -71,6 +87,7 @@ ggplot(data=loan,aes(loan_amnt, fill=grade))+
 ```
 
 Time series: we can tell that loan is increasing generally, but like generall trend all grades increase unstalely after 2014. And the proportion of loan from grade A is increasing dramaticly compared to other grades.
+
 ```{r}
 amnt_df_grade <- loan %>% 
   select(issue_d, loan_amnt, grade) %>% 
@@ -83,6 +100,11 @@ ts_amnt_grade + geom_area(aes(fill=grade)) + xlab("Date issued")
 ```
 
 From the perspective of purpose, the amount of loan varies across different purposes. Debt consolidation is the main reason for loan, following by creadit card. Loans out of the other reasons are not as much as these two. 
+
+columns invovled: 
+
+loan_amount: amount of money requested by the borrower
+purpose: A category provided by the borrower for the loan request.	
 
 ```{r}
 loan_group_by_purpose = aggregate(loan_amnt ~ purpose, data = loan, sum)
@@ -139,8 +161,16 @@ box_status + geom_boxplot(aes(fill = loan_status)) +
 ```
 
 
+In terms of home ownership, mortgage tends to have a higher amount of loan. 
 
+columns invovled: 
 
+loan_amount: amount of money requested by the borrower
+home_ownership: The home ownership status provided by the borrower during registration or obtained from the credit report. Our values are: RENT, OWN, MORTGAGE, OTHER.
 
+```{r}
+ggplot(data=loan, aes(home_ownership,loan_amnt, fill=home_ownership))+
+geom_boxplot()
+```
 
 
