@@ -4,6 +4,9 @@
     <meta charset="utf-8">
 	
     <script src="https://d3js.org/d3.v5.min.js"></script>
+    <!-- Plugin for color scale -->
+    <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+
 </head>
 
 <body>
@@ -14,9 +17,12 @@
             </svg>
         </div>
         <div id="pie_chart">
-            <svg class="pie_class" width="700" height="700">
+            <svg class="pie_class"  width="700" height="500">
 
             </svg>
+        </div>
+        <div id="my_dataviz">
+
         </div>
     </div>
 </body>
@@ -47,6 +53,8 @@ var chart = d3.select(".chart")
 var bar = chart.selectAll("g")
     .data(data)
     .enter().append("g")
+    .attr("cx",200)
+    .attr("cy",500)
     .attr("transform", function(d, i) { 
         interval = 0
         if(i%4 == 0){
@@ -97,6 +105,7 @@ function handleMouseOut(d, i) {
 //add all the rectangles
 bar.append("rect")
     .attr("width", Binwidth )
+    .attr("class","bar")
     .attr("height", function(d) {return 0; })
     .style("fill",function(d,i){
         color1 = "#0891bd"
@@ -112,16 +121,53 @@ bar.append("rect")
 
 //add the bottom bar
 var x_value = [];
-for (var i = 0; i <= data.length; i=i+4){
-    chart.append("g")
-        .attr("class","year")
-        .attr("x",(i)*4*Binwidth+left)
-        .attr("y",Height-margin.top)
-        .attr("width",4*Binwidth)
-        .attr("height",20)
-    x_value.push(i);
-}
+d3.select(".chart").append("g")
+    .attr("id","year")
+    .attr("transform","translate(0,600)")
+// for (var i = 0; i <= data.length; i=i+4){
+//     chart.append("g")
+//         .attr("class","year")
+//         .attr("cx",i*25+30)
+//         .attr("cy",300)
+//         .attr("width",4*Binwidth)
+//         .attr("height",20)
 
+//     x_value.push(i);
+// }
+var num = 0;
+var ll = [1,2,3,4,5,6]
+
+chart.selectAll("#year")
+    .data(ll).enter()
+    .append("rect")
+    .attr("class","bottom")
+    .attr("x",function(d,i ){
+      return i*100-69})
+    .attr("y",430)
+    .attr("width",100)
+    .attr("height",10)
+
+  chart.selectAll("#year")
+    .data(ll).enter()
+    .append("text")
+    .attr("x",function(d,i ){
+      return i*100-25})
+    .attr("y",445)
+    .style("font", "10px times")
+    .attr("class","annotation")
+    .attr("dy", ".35em")
+    .text(function(d,i ){
+      return d});
+
+// chart.select("#year")
+//     .selectAll("rect.bottom")
+//     .append("text")
+//     .attr("x",10)
+//     .attr("y",40)
+//     .style("font", "10px times")
+//     .attr("class","annotation")
+//     .attr("dy", ".35em")
+//     .text("1");
 
 
 //show the value in this array
@@ -132,7 +178,7 @@ for (var i = 0; i <= data.length; i=i+4){
 //     .text(function(d) { return d; }); 
 
 //bar animation
-d3.select("svg").selectAll("rect")
+d3.select("svg").selectAll("rect.bar")
     .transition()
     .duration(800)
     .attr("height", function(d) { return Height-margin.top-y(d)-margin.bottom; })
@@ -140,12 +186,12 @@ d3.select("svg").selectAll("rect")
 
 var x_value = [];
 
-chart.selectAll("g.year").append("rect")
-    .attr("x",(i)*4*Binwidth+left)
-    .attr("y",Height-margin.top)
-    .attr("width",4*Binwidth)
-    .attr("height",20)
-x_value.push(i);
+// chart.selectAll("g.year").append("rect")
+//     .attr("x",(i)*4*Binwidth+left)
+//     .attr("y",Height-margin.top)
+//     .attr("width",4*Binwidth)
+//     .attr("height",20)
+// x_value.push(i);
 
 var yAxis = d3.axisLeft().scale(y); 
 
@@ -153,12 +199,21 @@ var yAxis = d3.axisLeft().scale(y);
 d3.select("svg").append("g").attr("class", "yAxis")
          .attr("transform",`translate(${margin.left}, ${margin.top})`) .call(yAxis);
 
+//add the title to the bar chart
+d3.select(".chart").append("text")
+    .attr("x",290)
+    .attr("y",40)
+    .style("font", "25px times")
+    .attr("class","annotation")
+    .attr("dy", ".35em")
+    .text("TOTAL LOAN ISSUANCE");
 
-         var data = [
-  {name: "USA", value: 40},
-  {name: "UK", value: 20},
-  {name: "Canada", value: 30},
-  {name: "Maxico", value: 10},
+//pie chart
+var data = [
+    {name: "USA", value: 40},
+    {name: "wUK", value: 20},
+    {name: "Canada", value: 30},
+    {name: "Maxico", value: 10},
 ];
 var text = "";
 
@@ -174,7 +229,9 @@ var svg = d3.select(".pie_class")
 .append('svg')
 .attr('class', 'pie')
 .attr('width', width)
-.attr('height', height);
+.attr('height', height)
+.attr("x",200)
+.attr("y",100);
 
 var g = svg.append('g')
 .attr('transform', 'translate(' + (width/2) + ',' + (height/2) + ')');
@@ -186,6 +243,16 @@ var arc = d3.arc()
 var pie = d3.pie()
 .value(function(d) { return d.value; })
 .sort(null);
+
+// add the title of pie chart
+d3.select(".pie_class").append("text")
+        .attr("id", "t")
+        .attr("x",500)
+        .attr("y",40)
+        .style("font", "25px times")
+        .attr("class","annotation")
+        .attr("dy", ".35em")
+        .text("REPORTED LOAN PURPOSE");
 
 var path = g.selectAll('path')
     .data(pie(data))
@@ -238,22 +305,16 @@ g.append('text')
   .text(text);
 </script>
 
-
-
-<script>
-    
-</script>
 <style>
         #pie_char {
-            float: right;
-            height:500;
-            width:40%
+            
+            position: absolute;
+            top:30px;
+            left:500px
         }
 
-        #master_content-full
-        {
+        #master_content-full {
             float: left;
-            
         }
 
 		.chart rect {
@@ -271,5 +332,13 @@ g.append('text')
 		  font: 10px sans-serif;
 		  text-anchor: end;
         }
-
+        .tooltip {
+            background-color: black;
+            border: none;
+            border-radius: 5px;
+            padding: 15px;
+            min-width: 400px;
+            text-align: left;
+            color: white;
+        }
 	</style>

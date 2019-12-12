@@ -1,0 +1,146 @@
+---
+title: "statistical analysis"
+author: "Derek"
+date: "December 11, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(choroplethr)
+library(choroplethrMaps)
+library(DescTools)
+library(dplyr)
+library(ggplot2)
+library(readr)
+```
+
+## Results
+
+1. Read the data first. 
+
+```{r cars}
+loan <- read.csv(file="E:\\Columbia University\\course\\EXPLORATORY DATA ANALYSIS\\assignment\\finalproject\\EDAV\\resources/loan.csv", header=TRUE, sep=",")
+```
+
+Generally speaking, the amount of loan has a large range. The median of loan amount is 12,900 dollars, the highest is 400,00 dollars with 33,368 rows corresponding to it and the lowest is 500 dollars with only 11 records getting that. 
+Over half of the rows range from 8,000(25% quantile) to 20,000(75% quantile).  
+
+```{r}
+Desc(loan$loan_amnt, main = "Loan amount distribution", plotit = TRUE)
+
+```
+
+
+Time series: As time goes on, the total amount of loan is increasing. Before 2014 the amount of loan increases steadyly, but afterwards it still goes up but fluctuately. In 2016, it hit the peak at over 8.0*10^8 dollars. we could observe there is a significant growth in business since the start of 2012 and from 2014 to 2015Q4, monthly loan amount and volume have been increasing drastically.However, from the graph we could see the growth during the spikes is very unstable.
+
+```{r pressure, echo=FALSE}
+loan$issue_d <- as.Date(gsub("^", "01-", loan$issue_d), format="%d-%b-%Y")
+
+amnt_df <- loan %>% 
+  select(issue_d, loan_amnt) %>% 
+  group_by(issue_d) %>% 
+  summarise(Amount = sum(loan_amnt))
+
+ts_amnt <- ggplot(amnt_df, 
+                  aes(x = issue_d, y = Amount))
+ts_amnt + geom_line() + xlab("Date issued")
+```
+
+Categories:  This dataset classify all the loans into different categories, from A to G.(The loan grade is the result of a formula that takes into account not only credit score, but also a combination of several indicators of credit risk from the credit report and loan application.) 
+
+Grade C gets the most loan, following by B and A. The amount of loan decreases from D to G.
+
+```{r}
+ggplot(loan, aes(x=grade, y=loan_amnt, fill=grade)) +
+  stat_summary(fun.y="sum", geom="bar") +
+  labs(y ="Total Loan Amount",title="Total loan amount based on loan grade")
+```
+
+To distribution of the loan amount using histogram according to the type of loan grade. From this graph, we could observe that all the categories have similar distributions, with the peak at around 12,000. 
+```{r}
+ggplot(data=loan,aes(loan_amnt, col=grade))+
+  geom_histogram(bins=40) + 
+  facet_grid(grade ~ .)
+```
+
+To distribution of the loan amount using density plot according to the type of loan grade. We found similar patterns among A, B, C, D, and similar patterns among E, F, G.
+```{r}
+ggplot(data=loan,aes(loan_amnt, fill=grade))+
+  geom_density(alpha=0.25) + 
+  facet_grid(grade ~ .)
+```
+
+Time series: we can tell that loan is increasing generally, but like generall trend all grades increase unstalely after 2014. And the proportion of loan from grade A is increasing dramaticly compared to other grades.
+```{r}
+amnt_df_grade <- loan %>% 
+  select(issue_d, loan_amnt, grade) %>% 
+  group_by(issue_d, grade) %>% 
+  summarise(Amount = sum(loan_amnt))
+
+ts_amnt_grade <- ggplot(amnt_df_grade, 
+                  aes(x = issue_d, y = Amount))
+ts_amnt_grade + geom_area(aes(fill=grade)) + xlab("Date issued")
+```
+
+From the perspective of purpose, the amount of loan varies across different purposes. Debt consolidation is the main reason for loan, following by creadit card. Loans out of the other reasons are not as much as these two. 
+
+```{r}
+loan_group_by_purpose = aggregate(loan_amnt ~ purpose, data = loan, sum)
+ggplot(loan_group_by_purpose, aes(purpose,loan_amnt, fill = purpose)) + geom_col() + scale_x_discrete(breaks=NULL) + labs(subtitle="Distribution of loan Amount for Purpose", 
+       x="Purpose", 
+       y="Loan Amount",
+       title="Bar Plot")
+```
+
+Debt consolidation is the main purpose of loan for all grades, taking up over 50% in every grades. The cedit card takes more for Grade A, B and C, but not for the rest of grades.
+
+```{r}
+ggplot(data=loan, aes(x=grade, fill=purpose)) +
+  geom_bar()   
+```
+
+Loan Status:
+
+Fully Paid: Loan has been fully paid off.
+
+Charged Off	5653	Loan for which there is no longer a reasonable expectation of further payments.
+
+Does not meet the credit policy. Status:Fully Paid: While the loan was paid off, the loan application today would no longer meet the credit policy and wouldn’t be approved on to the marketplace.
+
+Does not meet the credit policy. Status:Charged Off: While the loan was charged off, the loan application today would no longer meet the credit policy and wouldn’t be approved on to the marketplace.
+
+Current:	Loan is up to date on current payments.
+
+In Grace Period:	The loan is past due but still in the grace period of 15 days.
+
+Late (31-120 days):	Loan hasn’t been paid in 31 to 120 days (late on the current payment).
+
+Late (16-30 days):	Loan hasn’t been paid in 16 to 30 days (late on the current payment).
+
+Default:	Loan is defaulted on and no payment has been made for more than 121 days.
+
+From the perspective of loan status, fully paid and current are the most common cases, whose proportions are much higher than the others.
+
+```{r}
+Desc(loan$loan_status, plotit = T)
+
+```
+
+For the amount of loan, all the status have the similar ranges and medians except for Does not meet the credit policy. Status:Fully Paid and Does not meet the credit policy. Status:Charged Off
+
+```{r}
+box_status <- ggplot(loan, aes(loan_status, loan_amnt))
+box_status + geom_boxplot(aes(fill = loan_status)) +
+  theme(axis.text.x = element_blank()) +
+  labs(list(
+    title = "Loan amount by status",
+    x = "Status",
+    y = "Amount"))  
+```
+
+
+
+
+
+
+
