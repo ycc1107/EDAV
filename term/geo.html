@@ -35,9 +35,13 @@ div.tooltip {
 <body>
 <span id = "left", style="float:left">
     <p style="width: 470px;"><font size="5"><b>AVERAGE LOAN AMOUNT BY STATE</b></font></p>
+    <p style="width: 470px;"><font size="3"><b> Click on a state to show county-leve data.</b></font></p>
+    <p style="width: 470px;"><font size="3"><b> Move mouse over region to show the value.</b></font></p>
 </span>
 <span id = "right", style="float:left">
         <p style="width: 470px;"><font size="5"><b>AVERAGE ANNUAL INCOME BY STATE</b></font></p>
+        <p style="width: 470px;"><b></b> </p>
+        <p style="width: 470px;"><b></b></p>
 </span>
 <div class="tooltip"></div>
 <script src="https://d3js.org/d3.v4.min.js"></script>
@@ -45,7 +49,7 @@ div.tooltip {
 <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
 <script>
 var width = 900
-var height = 600
+var height = 600 
 var padding = 20
 var margin = {top: 50, right: 10, bottom: 20, left: 10};
 
@@ -68,7 +72,7 @@ var svg_loan = d3.select('body').select("#left")
     .attr('id','loan')
     .attr('width', width)
     .attr('height', height)
-    .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+    // .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
 
 
 var key_loan = d3.select("#loan")
@@ -83,7 +87,7 @@ var svg_inc = d3.select('body').select("#right")
     .attr('id','inc')
     .attr('width', width)
     .attr('height', height)
-    .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+    .attr("transform", "translate(" + margin.left + "," + (margin.top+20) + ")")
 
 var key_inc = d3.select("#inc")
     .append("svg")
@@ -92,7 +96,6 @@ var key_inc = d3.select("#inc")
     .attr("class", "legend")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-  
 data_state = [{'id': 'AK',
   'loan_amnt': 2318458.9743589745,
   'annual_inc': 80308.5939675003,
@@ -598,7 +601,4 @@ d3.json("https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json", function(re
 })
 
 </script>
-<span >
-        <p style="width: 470px;"><font size="5"><b> Click on a state to show county-level data. </b></font></p>
-    </span>
 </body>                              
