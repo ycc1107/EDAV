@@ -2,7 +2,7 @@
 {% block title %}Stats{% endblock %}
 {% block div %}  
     
-    <div id="container">
+    <div class = "center-div", id="container">
         <div id="master_content-full" >
             <svg class="chart" width="920" height="500"> 
 
@@ -64,7 +64,7 @@ function handleMouseOver(d, i) {  // Add interactivity
         .attr("y",6)
         .attr("class","annotation")
         .attr("dy", ".35em")
-        .text(function(d) {return d; });
+        .text(function(d) {return String(d).replace(/(\d)(?=(\d{3})+$)/g, "$1,")});
     
     d3.select("svg").append("div")
         .attr("position","absolute")
@@ -151,12 +151,6 @@ d3.select(".chart").append("text")
     .attr("dy", ".35em")
     .text("TOTAL LOAN ISSUANCE");
 //pie chart
-var data = [
-    {name: "USA", value: 40},
-    {name: "UK", value: 20},
-    {name: "Canada", value: 30},
-    {name: "Maxico", value: 10},
-];
 var text = "";
 var width = 1000;
 var height = 260;
@@ -203,13 +197,14 @@ var path = g.selectAll('path')
  
       g.append("text")
         .attr("class", "name-text")
-        .text(`${d.data.name}`)
+        .text(`${d.data.purpose}`)
         .attr('text-anchor', 'middle')
         .attr('dy', '-1.2em');
   
       g.append("text")
         .attr("class", "value-text")
-        .text(`${d.data.value}`)
+        .text(String(`${d.data.loan_amnt}`).replace(/(\d)(?=(\d{3})+$)/g, "$1,"))
+
         .attr('text-anchor', 'middle')
         .attr('dy', '.6em');
     })
@@ -261,6 +256,10 @@ g.append('text')
       fill: black;
       font: 10px sans-serif;
       text-anchor: end;
+    }
+    .center-div{
+        margin : 0 auto;
+        width: 1900px;
     }
 </style>     
 {% endblock %}
