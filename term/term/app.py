@@ -14,7 +14,7 @@ COL_CARE = ["loan_amnt", "loan_status", "zip_code", "annual_inc", "term", "int_r
 TIME_DATA_CACHE = None
 STATS_DATA_CACHE = None
 GEO_DATA_CACHE = None
-
+PURP_DATA_CACHE = None
 
 @app.route("/loading")
 def loading():
@@ -23,7 +23,8 @@ def loading():
 @app.route("/stats")
 def bystats():
     jsonify_data = json.dumps(STATS_DATA_CACHE, indent=2)
-    return render_template("stats.html", stats_data=jsonify_data)
+    jsonify_data_purp = json.dumps(PURP_DATA_CACHE, indent=2)
+    return render_template("stats.html", stats_data=jsonify_data, purp_data=jsonify_data_purp)
 
 @app.route("/timeseries")
 def bytime():
@@ -49,11 +50,13 @@ def load_data():
     global TIME_DATA_CACHE
     global STATS_DATA_CACHE
     global GEO_DATA_CACHE
-
+    global PURP_DATA_CACHE
+    
     STATS_DATA_CACHE = pd.read_csv("stats_data.csv").to_dict("records")
     TIME_DATA_CACHE = pd.read_csv("time_data.csv").to_dict("records")
     GEO_DATA_CACHE = pd.read_csv("geo_date.csv").to_dict("records")
-    
+    PURP_DATA_CACHE = pd.read_csv("stats_purpose_data.csv").to_dict("records")
+
     print(time.time() - s)
 
 @app.before_first_request
