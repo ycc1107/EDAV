@@ -184,6 +184,7 @@ d3.select(".pie_class").append("text")
         .text("REPORTED LOAN PURPOSE");
 
 var color1 = ""
+var color2 = ""
 var path = g.selectAll('path')
     .data(pie(pie_data))
     .enter()
@@ -219,6 +220,7 @@ var path = g.selectAll('path')
     .attr('d', arc)
     .attr('fill', (d,i) => color(i))
     .on("mouseover", function(d) {
+        color2 = d3.select(this).style()
       d3.select(this)     
         .style("cursor", "pointer")
         .style("fill", "black");
@@ -226,7 +228,7 @@ var path = g.selectAll('path')
     .on("mouseout", function(d) {
       d3.select(this)
         .style("cursor", "none")  
-        .style("fill", color(this._current));
+        .style("fill", color2);
     })
     .each(function(d, i) { this._current = i; });
 g.append('text')
